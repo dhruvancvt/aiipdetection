@@ -1,3 +1,4 @@
+from tqdm import tqdm
 import pyshark
 import pandas as pd
 from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score, GridSearchCV
@@ -8,10 +9,10 @@ from imblearn.over_sampling import SMOTE
 import numpy as np
 
 
-def read_pcap(file_path):
-    capture = pyshark.FileCapture(file_path)
+def read_pcap(file_path, max_packets=None):
+    capture = pyshark.FileCapture(file_path, use_json=True, include_raw=False)
     data = []
-    for packet in capture:
+    for i, packet in enumerate(tqdm(capture, desc="Reading packets", unit="packet")):
         if 'IP' in packet:
             try:
                 data.append({
@@ -21,14 +22,17 @@ def read_pcap(file_path):
                 })
             except AttributeError:
                 continue
+        if max_packets and i >= max_packets - 1:
+            break
     capture.close()
     return pd.DataFrame(data)
 
 
-df = read_pcap('outputs and datasets/SUEE1.pcap')
+df = read_pcap('outputs and datasets/SUEE1.pcap', max_packets=500000)
 
 
 def add_features(dataframe):
+    tqdm.pandas(desc="Adding features")
     dataframe['packet_count'] = dataframe.groupby('Source')['Source'].transform('count')
     dataframe['average_length'] = dataframe.groupby('Source')['Length'].transform('mean')
     dataframe['unique_destinations'] = dataframe.groupby('Source')['Destination'].transform('nunique')
@@ -63,9 +67,20 @@ def optimize_model(X_train, y_train):
         'max_depth': [None, 10, 20, 30],
         'min_samples_split': [2, 5, 10],
     }
-    grid_search = GridSearchCV(RandomForestClassifier(class_weight='balanced', random_state=42),
-                               param_grid, cv=5, scoring='f1')
-    grid_search.fit(X_train, y_train)
+    grid_search = GridSearchCV(
+        RandomForestClassifier(class_weight='balanced', random_state=42),
+        param_grid,
+        cv=5,
+        scoring='f1'
+    )
+
+    with tqdm(total=len(param_grid['n_estimators']) *
+                     len(param_grid['max_depth']) *
+                     len(param_grid['min_samples_split']),
+              desc="Optimizing model") as pbar:
+        def progress_callback(*args, **kwargs):
+            pbar.update()
+        grid_search.fit(X_train, y_train)  # No callbacks argument here
     return grid_search.best_estimator_
 
 
