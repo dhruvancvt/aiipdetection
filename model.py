@@ -28,7 +28,7 @@ def read_pcap(file_path, max_packets=None):
     return pd.DataFrame(data)
 
 
-df = read_pcap('outputs and datasets/SUEE1.pcap', max_packets=500000)
+df = read_pcap('outputs and datasets/SUEE1.pcap', max_packets=2000000)
 
 
 def add_features(dataframe):
