@@ -332,7 +332,40 @@ aiipdetection/
 
 ## Testing
 
-Run the test suite:
+### Generate Test Data
+
+Create a test PCAP file with simulated network traffic:
+
+```bash
+# Generate test PCAP with 1000 packets
+python generate_test_pcap.py
+
+# Or specify custom size
+python generate_test_pcap.py -n 5000 -o custom_test.pcap
+```
+
+This creates a PCAP file with:
+- 80% normal traffic from 5 source IPs
+- 20% anomalous traffic from attacker IP `10.128.1.100`
+- The attacker exhibits port scanning behavior (many packets to many destinations)
+
+### Run Tests
+
+Test the system with generated data:
+
+```bash
+# Test anomaly detection
+python model.py test_capture.pcap
+
+# Expected output: Attacker IP 10.128.1.100 detected as anomalous
+
+# Test other tools
+python convpcaptopy.py test_capture.pcap
+python anon.py test_capture.pcap
+python visualize.py unsupervised_processed_output.csv -o ./plots
+```
+
+### Run Unit Tests
 
 ```bash
 # Run all tests
@@ -356,6 +389,8 @@ pytest -v
 - PCAP anonymization
 - IP/MAC address handling
 - Attacker subnet preservation
+
+For detailed testing instructions, see [TESTING.md](TESTING.md).
 
 ---
 
