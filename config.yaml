@@ -1,0 +1,59 @@
+# AI IP Detection Configuration File
+
+# Model Parameters
+model:
+  # Number of trees in Isolation Forest
+  n_estimators: 100
+
+  # Expected proportion of anomalies in the dataset (0.01 = 1%)
+  contamination: 0.05
+
+  # Random seed for reproducibility
+  random_state: 42
+
+# Processing Parameters
+processing:
+  # Maximum number of packets to read (null for all)
+  max_packets: null
+
+  # Output directory for results
+  output_dir: "./results"
+
+  # Default output CSV filename
+  output_csv: "unsupervised_processed_output.csv"
+
+# Logging Configuration
+logging:
+  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  level: INFO
+
+  # Log file path
+  log_file: "anomaly_detection.log"
+
+  # Enable file logging
+  log_to_file: true
+
+  # Enable console logging
+  log_to_console: true
+
+# Feature Engineering
+features:
+  # Features to use for anomaly detection
+  enabled:
+    - log_packet_count
+    - log_average_length
+    - unique_destinations
+
+  # Apply log transformation to reduce skewness
+  apply_log_transform: true
+
+# Anonymization Settings (for anon.py)
+anonymization:
+  # Preserve attacker IPs in specific subnet (format: "network.subnet")
+  preserve_attacker_subnet: "10.128"
+
+  # Anonymized MAC prefix
+  mac_prefix: "ff:ff:ff:ff"
+
+  # Anonymized IP network
+  ip_network: "192.168"
